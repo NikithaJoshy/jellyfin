@@ -42,19 +42,21 @@ from the individual per-repo docs.)
 4. **Update, don't rewrite**, on subsequent runs — if a consolidated doc
    already exists, only touch the sections whose source material changed.
 5. **When merging Mermaid diagrams, re-validate syntax — do not just splice
-   text together.** Follow the same Mermaid Syntax Rules used to generate the
-   originals:
-   - Never start a node label with `/` (e.g. `[/auth,/users,/tasks]` is
-     invalid — reserved for trapezoid shapes).
-   - Wrap any label containing a comma, slash, parenthesis, or colon in
-     double quotes, e.g. `Gateway["API Gateway: /auth, /users, /tasks"]`.
-   - One node or edge definition per line; never chain definitions with
-     commas.
+   text together.** Apply the full Mermaid Syntax Rules from the
+   generate-design-docs skill (node label quoting, edge label quoting, no
+   reserved words like `end` as IDs, valid arrow syntax, one statement per
+   line, balanced sequence-diagram activations, etc.) to the merged result —
+   a diagram that was valid in each source doc can still become invalid after
+   merging. In particular:
    - If the frontend and backend diagrams each define a node with the same
      ID but different meaning, rename one before merging — colliding IDs
      silently overwrite each other in Mermaid.
-   - After merging, mentally re-parse the combined diagram line by line to
-     confirm every label is either a bare short phrase or fully quoted.
+   - If both source diagrams use the same participant alias in sequence
+     diagrams for different actors, rename one before merging.
+   - After merging, mentally re-parse the combined diagram line by line
+     against every rule in the generate-design-docs skill's Mermaid Syntax
+     Rules section — do not assume validity just because both inputs were
+     individually valid.
 
 ## Merge Logic
 
@@ -105,5 +107,17 @@ from the individual per-repo docs.)
 3. Identify what's new or changed in either source doc since the last
    consolidation.
 4. Produce or update the two consolidated documents per the merge logic above.
-5. Do not commit or open a PR as part of this skill — leave changes staged for
-   the workflow or a developer to review.
+5. Write the files to disk in this repo's `docs/` folder (create it if
+   needed).
+6. If there are no actual changes compared to what's already committed, stop
+   here — do not create a branch or PR.
+7. If there are changes, open a pull request in this repo:
+   - Create a new branch named `docs/consolidated-update-<YYYYMMDD-HHMM>` off
+     the default branch.
+   - Commit with a message like
+     `docs: automated consolidated HLD/LLD update <date>`.
+   - Push and open a PR against the default branch, titled
+     `docs(hld): automated consolidated update <date>`, labeled `automerge`,
+     with a body noting which source docs (and their last-updated dates) were
+     used.
+   - Never push directly to the default branch — always go through a PR.
